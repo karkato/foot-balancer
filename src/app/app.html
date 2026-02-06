@@ -1,6 +1,19 @@
-<div class="container">
+@if (isMaintenance()) {
+  <!-- PAGE DE MAINTENANCE -->
+  <div class="maintenance-screen">
+    <div class="maintenance-card">
+      <span class="icon">⚽</span>
+      <h1>Team Balancer</h1>
+      <div class="divider"></div>
+      <p>Le vestiaire est actuellement fermé pour travaux.</p>
+      <p class="subtitle">On prépare la nouvelle version des équipes. Revenez très bientôt !</p>
+      <div class="status-badge">Statut : Amélioration en cours</div>
+    </div>
+  </div>
+} @else {
+  <div class="container">
   <header>
-    <h1>⚽ Foot Match Balancer</h1>
+    <h1>⚽ Team Balancer</h1>
     <p>Créez des équipes équilibrées par poste et par niveau.</p>
   </header>
 
@@ -71,3 +84,4 @@
   }
 
 </div>
+}

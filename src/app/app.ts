@@ -37,6 +37,7 @@ export class AppComponent {
   ]);
 
   teams = signal<{ team1: Player[], team2: Player[] }>({ team1: [], team2: [] });
+  isMaintenance = signal(true);
 
   // --- Champs du formulaire ---
   newPlayerName = '';
