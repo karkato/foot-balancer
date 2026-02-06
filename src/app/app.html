@@ -17,8 +17,12 @@
         }
       </div>
 
-      <!-- Le score reste là pour la logique, mais il est "secret" dans la liste -->
-      <input type="number" [(ngModel)]="newPlayerScore" min="0" max="10" step="0.5" placeholder="Note">
+      <select [(ngModel)]="newPlayerScore">
+    <option [value]="9">🌟 Top Player</option>
+    <option [value]="7">✅ Confirmé</option>
+    <option [value]="5">🏃 Moyen</option>
+    <option [value]="3">🌱 Débutant / Loisir</option>
+  </select>
       <button (click)="addPlayer()">Ajouter</button>
     </div>
   </section>

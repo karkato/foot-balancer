@@ -20,7 +20,7 @@ export const appConfig: ApplicationConfig = {
 ******************************************************************************
 * FICHIER: src\app\app.css
 * TAILLE: 2945 octets
-* MODIFIÉ: 2026-02-06T08:42:27.698Z
+* MODIFIÉ: 2026-02-06T19:36:59.338Z
 ******************************************************************************
 */
 
@@ -158,8 +158,8 @@ button:hover { background-color: #303f9f; }
 /*
 ******************************************************************************
 * FICHIER: src\app\app.html
-* TAILLE: 2590 octets
-* MODIFIÉ: 2026-02-06T08:42:15.670Z
+* TAILLE: 2254 octets
+* MODIFIÉ: 2026-02-06T19:36:50.766Z
 ******************************************************************************
 */
 
@@ -169,66 +169,62 @@ button:hover { background-color: #303f9f; }
     <p>Créez des équipes équilibrées par poste et par niveau.</p>
   </header>
 
-  <!-- Formulaire d'ajout de joueur -->
   <section class="card">
-    <h2>Ajouter un nouveau joueur</h2>
-    <div class="form-group">
-      <input [(ngModel)]="newPlayerName" placeholder="Nom ou surnom">
-      <select [(ngModel)]="newPlayerPos">
-        <option value="Gardien">Gardien</option>
-        <option value="Défenseur">Défenseur</option>
-        <option value="Milieu">Milieu</option>
-        <option value="Attaquant">Attaquant</option>
-      </select>
-      <input type="number" [(ngModel)]="newPlayerScore" min="0" max="10" step="0.5" placeholder="Note/10">
+    <h2>Ajouter un joueur</h2>
+    <div class="form-group-multi">
+      <input [(ngModel)]="newPlayerName" placeholder="Nom">
+      
+      <div class="checkbox-group">
+        @for (pos of availablePositions; track pos) {
+          <label>
+            <input type="checkbox" [(ngModel)]="selectedPositions[pos]"> {{pos}}
+          </label>
+        }
+      </div>
+
+      <!-- Le score reste là pour la logique, mais il est "secret" dans la liste -->
+      <input type="number" [(ngModel)]="newPlayerScore" min="0" max="10" step="0.5" placeholder="Note">
       <button (click)="addPlayer()">Ajouter</button>
     </div>
   </section>
 
-  <!-- Liste des joueurs sélectionnables -->
   <section class="card">
-    <h2>Liste des joueurs (Présents : {{ playersPresent().length }})</h2>
-    <p class="subtitle">Cliquez sur un joueur pour le marquer comme présent ou absent.</p>
+    <h2>Joueurs présents ({{ playersPresent().length }})</h2>
     <div class="player-grid">
       @for (p of allPlayers(); track p.id) {
         <div class="player-tag" [class.active]="p.estPresent" (click)="togglePresence(p)">
-          <span class="player-name">{{ p.nom }} ({{ p.score }})</span>
-          <span class="player-pos">{{ p.position }}</span>
+          <span class="player-name">{{ p.nom }}</span>
+          <!-- On affiche tous les postes du joueur -->
+          <span class="player-pos">{{ p.positions.join(' / ') }}</span>
         </div>
-      } @empty {
-        <p>Aucun joueur dans la liste. Ajoutez-en un !</p>
       }
     </div>
-    <div class="actions-gap">
-  <button class="btn-generate" (click)="makeTeams()" [disabled]="playersPresent().length < 2">
-    GÉNÉRER LES ÉQUIPES
-  </button>
-
-  @if (teams().team1.length > 0) {
-    <button class="btn-reshuffle" (click)="reShuffle()">
-      🔄 MÉLANGER (Garder l'équilibre)
-    </button>
-  }
-</div>
     
+    <div class="actions-gap">
+      <button class="btn-generate" (click)="makeTeams()">
+        GÉNÉRER ÉQUIPES (NIVEAU)
+      </button>
+      <button class="btn-reshuffle" (click)="shuffleByPositionOnly()">
+        🔄 MÉLANGER PAR POSTE (ALÉATOIRE)
+      </button>
+    </div>
   </section>
 
-  <!-- Affichage des équipes générées -->
   @if (teams().team1.length > 0) {
     <div class="teams-container">
       <div class="team-card team-a">
-        <h3>Équipe A (Score moy: {{ avgScore(teams().team1) }})</h3>
+        <h3>Équipe A</h3> <!-- Score moyen supprimé -->
         <ul>
           @for (p of teams().team1; track p.id) {
-            <li><strong>{{ p.position }} :</strong> {{ p.nom }} ({{ p.score }})</li>
+            <li><strong>{{ p.positions[0] }} :</strong> {{ p.nom }}</li>
           }
         </ul>
       </div>
       <div class="team-card team-b">
-        <h3>Équipe B (Score moy: {{ avgScore(teams().team2) }})</h3>
+        <h3>Équipe B</h3>
         <ul>
           @for (p of teams().team2; track p.id) {
-            <li><strong>{{ p.position }} :</strong> {{ p.nom }} ({{ p.score }})</li>
+            <li><strong>{{ p.positions[0] }} :</strong> {{ p.nom }}</li>
           }
         </ul>
       </div>
@@ -271,8 +267,8 @@ describe('App', () => {
 /*
 ******************************************************************************
 * FICHIER: src\app\app.ts
-* TAILLE: 3751 octets
-* MODIFIÉ: 2026-02-06T18:44:21.034Z
+* TAILLE: 4152 octets
+* MODIFIÉ: 2026-02-06T19:34:29.773Z
 ******************************************************************************
 */
 
@@ -294,24 +290,24 @@ export class AppComponent {
 
   // --- State géré par les Signals ---
   allPlayers = signal<Player[]>([
-    { id: '1', nom: 'Omar', position: 'Défenseur', score: 7.3, estPresent: true },
-    { id: '2', nom: 'Ismael', position: 'Défenseur', score: 7.8, estPresent: true },
-    { id: '3', nom: 'Francis', position: 'Milieu', score: 8, estPresent: true },
-    { id: '4', nom: 'Assirem', position: 'Attaquant', score: 7.9, estPresent: true },
-    { id: '5', nom: 'Massi', position: 'Gardien', score: 8, estPresent: true },
-    { id: '6', nom: 'Maro', position: 'Milieu', score: 8.5, estPresent: true },
-    { id: '7', nom: 'Billal', position: 'Défenseur', score: 8, estPresent: true },
-    { id: '8', nom: 'Romain', position: 'Défenseur', score: 8.2, estPresent: true },
-    { id: '9', nom: 'Hassan', position: 'Milieu', score: 7, estPresent: true },
-    { id: '10', nom: 'Anis', position: 'Défenseur', score: 7.8, estPresent: true },
-    { id: '11', nom: 'Mike', position: 'Gardien', score: 7.5, estPresent: true },
-    { id: '12', nom: 'Seb', position: 'Attaquant', score: 7, estPresent: true },
-    { id: '13', nom: 'M10', position: 'Milieu', score: 7.8, estPresent: true },
-    { id: '14', nom: 'Airwin', position: 'Défenseur', score: 6, estPresent: true },
-    { id: '15', nom: 'Alex Ma', position: 'Milieu', score: 8.2, estPresent: true },
-    { id: '16', nom: 'Amin', position: 'Attaquant', score: 8.4, estPresent: true },
-    { id: '17', nom: 'Pepito', position: 'Attaquant', score: 8.6, estPresent: true },
-    { id: '18', nom: 'Chris', position: 'Milieu', score: 9, estPresent: true },
+    { id: '1', nom: 'Omar', positions: ['Défenseur'], score: 7.3, estPresent: true },
+    { id: '2', nom: 'Ismael', positions: ['Défenseur'], score: 7.8, estPresent: true },
+    { id: '3', nom: 'Francis', positions: ['Milieu'], score: 8, estPresent: true },
+    { id: '4', nom: 'Assirem', positions: ['Attaquant'], score: 7.9, estPresent: true },
+    { id: '5', nom: 'Massi', positions: ['Gardien'], score: 8, estPresent: true },
+    { id: '6', nom: 'Maro', positions: ['Milieu'], score: 8.5, estPresent: true },
+    { id: '7', nom: 'Billal', positions: ['Défenseur'], score: 8, estPresent: true },
+    { id: '8', nom: 'Romain', positions: ['Défenseur'], score: 8.2, estPresent: true },
+    { id: '9', nom: 'Hassan', positions: ['Milieu'], score: 7, estPresent: true },
+    { id: '10', nom: 'Anis', positions: ['Défenseur'], score: 7.8, estPresent: true },
+    { id: '11', nom: 'Mike', positions: ['Gardien'], score: 7.5, estPresent: true },
+    { id: '12', nom: 'Seb', positions: ['Attaquant'], score: 7, estPresent: true },
+    { id: '13', nom: 'M10', positions: ['Milieu'], score: 7.8, estPresent: true },
+    { id: '14', nom: 'Airwin', positions: ['Défenseur'], score: 6, estPresent: true },
+    { id: '15', nom: 'Alex Ma', positions:[ 'Milieu'], score: 8.2, estPresent: true },
+    { id: '16', nom: 'Amin', positions: ['Attaquant'], score: 8.4, estPresent: true },
+    { id: '17', nom: 'Pepito', positions: ['Attaquant'], score: 8.6, estPresent: true },
+    { id: '18', nom: 'Chris', positions: ['Milieu'], score: 9, estPresent: true },
   ]);
 
   teams = signal<{ team1: Player[], team2: Player[] }>({ team1: [], team2: [] });
@@ -323,22 +319,24 @@ export class AppComponent {
 
   // --- Signals dérivés (computed) ---
   playersPresent = computed(() => this.allPlayers().filter(p => p.estPresent));
+  availablePositions: Position[] = ['Gardien', 'Défenseur', 'Milieu', 'Attaquant'];
+  selectedPositions: { [key: string]: boolean } = {}; // Pour les checkboxes
 
   // --- Méthodes ---
   addPlayer() {
-    if (!this.newPlayerName.trim()) return;
+    const roles = this.availablePositions.filter(p => this.selectedPositions[p]);
+    if (!this.newPlayerName.trim() || roles.length === 0) return;
+
     const newPlayer: Player = {
-      id: crypto.randomUUID(), // Méthode moderne pour générer un ID unique
+      id: crypto.randomUUID(),
       nom: this.newPlayerName,
-      position: this.newPlayerPos,
+      positions: roles as Position[],
       score: this.newPlayerScore,
       estPresent: true
     };
-    this.allPlayers.update(currentPlayers => [...currentPlayers, newPlayer]);
-    
-    // Reset form
+    this.allPlayers.update(ps => [...ps, newPlayer]);
     this.newPlayerName = '';
-    this.newPlayerScore = 5;
+    this.selectedPositions = {}; // Reset positions
   }
 
   togglePresence(playerToToggle: Player) {
@@ -347,6 +345,11 @@ export class AppComponent {
         p.id === playerToToggle.id ? { ...p, estPresent: !p.estPresent } : p
       )
     );
+  }
+
+  shuffleByPositionOnly() {
+    const result = this.teamService.generateTeams(this.playersPresent(), false);
+    this.teams.set(result);
   }
 
   // Génération initiale (stricte)
@@ -370,8 +373,8 @@ export class AppComponent {
 /*
 ******************************************************************************
 * FICHIER: src\app\models\player.model.ts
-* TAILLE: 231 octets
-* MODIFIÉ: 2026-02-06T08:03:03.106Z
+* TAILLE: 224 octets
+* MODIFIÉ: 2026-02-06T18:55:07.860Z
 ******************************************************************************
 */
 
@@ -381,15 +384,15 @@ export interface Player {
   id: string;
   nom: string;
   surnom?: string;
-  position: Position;
-  score: number; // sur 10
+  positions: Position[];
+  score: number;
   estPresent: boolean;
 }
 /*
 ******************************************************************************
 * FICHIER: src\app\services\team.service.ts
-* TAILLE: 1711 octets
-* MODIFIÉ: 2026-02-06T08:41:28.410Z
+* TAILLE: 1624 octets
+* MODIFIÉ: 2026-02-06T18:55:15.262Z
 ******************************************************************************
 */
 
@@ -399,25 +402,22 @@ import { Player, Position } from '../models/player.model';
 @Injectable({ providedIn: 'root' })
 export class TeamService {
 
-  generateTeams(presentPlayers: Player[], shuffle: boolean = false) {
+  generateTeams(presentPlayers: Player[], useScore: boolean = true) {
     let team1: Player[] = [];
     let team2: Player[] = [];
     const positionOrder: Position[] = ['Gardien', 'Défenseur', 'Milieu', 'Attaquant'];
-    let pickTeam1First = true;
+    let pickTeam1First = Math.random() > 0.5; // Aléatoire sur qui commence
 
     positionOrder.forEach(pos => {
-      let playersInPos = presentPlayers.filter(p => p.position === pos);
+      // On récupère les joueurs dont la PREMIÈRE position correspond (poste préférentiel)
+      let playersInPos = presentPlayers.filter(p => p.positions[0] === pos);
 
-      // --- LOGIQUE DE VARIATION ---
-      if (shuffle) {
-        // On mélange aléatoirement les joueurs de cette position
-        playersInPos = playersInPos.sort(() => Math.random() - 0.5);
-        // Puis on les trie par score, mais les joueurs ayant la même note 
-        // ou une note proche seront dans un ordre différent à chaque fois.
+      if (useScore) {
+        // Mode "Équilibré" : Tri par score puis petit mélange interne
         playersInPos.sort((a, b) => b.score - a.score);
       } else {
-        // Tirage standard : strictement par score
-        playersInPos.sort((a, b) => b.score - a.score);
+        // Mode "Pur Aléatoire par poste" : Mélange total du groupe
+        playersInPos = playersInPos.sort(() => Math.random() - 0.5);
       }
 
       playersInPos.forEach((player) => {
@@ -431,14 +431,11 @@ export class TeamService {
   }
 
   private ensureNumericBalance(t1: Player[], t2: Player[]) {
+    const all = [...t1, ...t2];
+    // Si la différence est trop grande, on rééquilibre strictement en 9v9
     while (Math.abs(t1.length - t2.length) > 1) {
-      if (t1.length > t2.length) {
-        const player = t1.pop();
-        if (player) t2.push(player);
-      } else {
-        const player = t2.pop();
-        if (player) t1.push(player);
-      }
+      if (t1.length > t2.length) t2.push(t1.pop()!);
+      else t1.push(t2.pop()!);
     }
     return { team1: t1, team2: t2 };
   }

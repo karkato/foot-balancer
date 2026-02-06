@@ -15,10 +15,15 @@ export class TeamService {
       let playersInPos = presentPlayers.filter(p => p.positions[0] === pos);
 
       if (useScore) {
-        // Mode "Équilibré" : Tri par score puis petit mélange interne
-        playersInPos.sort((a, b) => b.score - a.score);
+        // On ajoute un petit bonus/malus aléatoire de +/- 0.5 
+        // pour varier les compositions à chaque clic
+        playersInPos = playersInPos.map(p => ({
+          ...p,
+          tempScore: p.score + (Math.random() - 0.5)
+        }));
+
+        playersInPos.sort((a: any, b: any) => b.tempScore - a.tempScore);
       } else {
-        // Mode "Pur Aléatoire par poste" : Mélange total du groupe
         playersInPos = playersInPos.sort(() => Math.random() - 0.5);
       }
 

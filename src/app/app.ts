@@ -29,7 +29,7 @@ export class AppComponent {
     { id: '11', nom: 'Mike', positions: ['Gardien'], score: 7.5, estPresent: true },
     { id: '12', nom: 'Seb', positions: ['Attaquant'], score: 7, estPresent: true },
     { id: '13', nom: 'M10', positions: ['Milieu'], score: 7.8, estPresent: true },
-    { id: '14', nom: 'Airwin', positions: ['Défenseur'], score: 6, estPresent: true },
+    { id: '14', nom: 'Airwin', positions: ['Défenseur'], score: 6.5, estPresent: true },
     { id: '15', nom: 'Alex Ma', positions:[ 'Milieu'], score: 8.2, estPresent: true },
     { id: '16', nom: 'Amin', positions: ['Attaquant'], score: 8.4, estPresent: true },
     { id: '17', nom: 'Pepito', positions: ['Attaquant'], score: 8.6, estPresent: true },
@@ -51,15 +51,15 @@ export class AppComponent {
   // --- Méthodes ---
   addPlayer() {
     const roles = this.availablePositions.filter(p => this.selectedPositions[p]);
-    if (!this.newPlayerName.trim() || roles.length === 0) return;
+  if (!this.newPlayerName.trim() || roles.length === 0) return;
 
-    const newPlayer: Player = {
-      id: crypto.randomUUID(),
-      nom: this.newPlayerName,
-      positions: roles as Position[],
-      score: this.newPlayerScore,
-      estPresent: true
-    };
+  const newPlayer: Player = {
+    id: crypto.randomUUID(),
+    nom: this.newPlayerName,
+    positions: roles as Position[],
+    score: Number(this.newPlayerScore), // On stocke la valeur du profil
+    estPresent: true
+  };
     this.allPlayers.update(ps => [...ps, newPlayer]);
     this.newPlayerName = '';
     this.selectedPositions = {}; // Reset positions
@@ -96,3 +96,11 @@ export class AppComponent {
     return (total / team.length).toFixed(1);
   }
 }
+
+// Définition des profils
+export const NIVEAUX = [
+  { label: '🌟 Top', valeur: 9 },
+  { label: '✅ Confirmé', valeur: 7 },
+  { label: '🏃 Moyen', valeur: 5 },
+  { label: '🌱 Débutant', valeur: 3 }
+];
