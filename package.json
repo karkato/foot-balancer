@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "concat": "node ci/concat.js src out -c -e html,css,js,ts,vue -l 100000 && mv out/output_part_001.txt out/output_project.txt",
-    "deploy": "ng build --base-href '/' && npx ngh --dir=dist/foot-balancer/browser"
+    "deploy": "ng build --base-href \"/foot-balancer/\" && npx ngh --dir=dist/foot-balancer/browser"
   },
   "prettier": {
     "printWidth": 100,
