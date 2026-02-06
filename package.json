@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "concat": "node ci/concat.js src out -c -e html,css,js,ts,vue -l 100000 && mv out/output_part_001.txt out/output_project.txt"
   },
   "prettier": {
     "printWidth": 100,

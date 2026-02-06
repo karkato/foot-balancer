@@ -1,0 +1,491 @@
+
+/*
+******************************************************************************
+* FICHIER: src\app\app.config.ts
+* TAILLE: 211 octets
+* MODIFIÉ: 2026-02-06T07:54:06.341Z
+******************************************************************************
+*/
+
+import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideBrowserGlobalErrorListeners(),
+    
+  ]
+};
+
+/*
+******************************************************************************
+* FICHIER: src\app\app.css
+* TAILLE: 2945 octets
+* MODIFIÉ: 2026-02-06T08:42:27.698Z
+******************************************************************************
+*/
+
+:host {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+h1 { color: #1a237e; }
+h2 { border-bottom: 2px solid #e0e0e0; padding-bottom: 0.5rem; margin-top: 0; }
+.subtitle { color: #666; font-size: 0.9rem; }
+
+.card {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.form-group {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 1rem;
+  align-items: center;
+}
+
+input, select, button {
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+button {
+  background-color: #3f51b5;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+button:hover { background-color: #303f9f; }
+
+.player-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.player-tag {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  cursor: pointer;
+  background-color: #f5f5f5;
+  transition: all 0.2s;
+}
+
+.player-tag:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+.player-tag.active {
+  background-color: #4caf50;
+  color: white;
+  border-color: #388e3c;
+}
+
+.player-name { font-weight: bold; }
+.player-pos { font-size: 0.8rem; color: #555; }
+.player-tag.active .player-pos { color: #eee; }
+
+.btn-generate {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  background-color: #d32f2f;
+}
+.btn-generate:hover { background-color: #b71c1c; }
+.btn-generate:disabled { background-color: #ccc; cursor: not-allowed; }
+
+.teams-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.team-card {
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.team-card.team-a { border-top: 5px solid #3f51b5; }
+.team-card.team-b { border-top: 5px solid #fbc02d; }
+.team-card h3 { margin-top: 0; }
+.team-card ul { padding-left: 0; list-style-type: none; }
+.team-card li { padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+.team-card li:last-child { border-bottom: none; }
+
+.actions-gap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-reshuffle {
+  width: 100%;
+  padding: 12px;
+  background-color: #f39c12; /* Orange pour différencier */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-reshuffle:hover {
+  background-color: #e67e22;
+}
+/*
+******************************************************************************
+* FICHIER: src\app\app.html
+* TAILLE: 2590 octets
+* MODIFIÉ: 2026-02-06T08:42:15.670Z
+******************************************************************************
+*/
+
+<div class="container">
+  <header>
+    <h1>⚽ Foot Match Balancer</h1>
+    <p>Créez des équipes équilibrées par poste et par niveau.</p>
+  </header>
+
+  <!-- Formulaire d'ajout de joueur -->
+  <section class="card">
+    <h2>Ajouter un nouveau joueur</h2>
+    <div class="form-group">
+      <input [(ngModel)]="newPlayerName" placeholder="Nom ou surnom">
+      <select [(ngModel)]="newPlayerPos">
+        <option value="Gardien">Gardien</option>
+        <option value="Défenseur">Défenseur</option>
+        <option value="Milieu">Milieu</option>
+        <option value="Attaquant">Attaquant</option>
+      </select>
+      <input type="number" [(ngModel)]="newPlayerScore" min="0" max="10" step="0.5" placeholder="Note/10">
+      <button (click)="addPlayer()">Ajouter</button>
+    </div>
+  </section>
+
+  <!-- Liste des joueurs sélectionnables -->
+  <section class="card">
+    <h2>Liste des joueurs (Présents : {{ playersPresent().length }})</h2>
+    <p class="subtitle">Cliquez sur un joueur pour le marquer comme présent ou absent.</p>
+    <div class="player-grid">
+      @for (p of allPlayers(); track p.id) {
+        <div class="player-tag" [class.active]="p.estPresent" (click)="togglePresence(p)">
+          <span class="player-name">{{ p.nom }} ({{ p.score }})</span>
+          <span class="player-pos">{{ p.position }}</span>
+        </div>
+      } @empty {
+        <p>Aucun joueur dans la liste. Ajoutez-en un !</p>
+      }
+    </div>
+    <div class="actions-gap">
+  <button class="btn-generate" (click)="makeTeams()" [disabled]="playersPresent().length < 2">
+    GÉNÉRER LES ÉQUIPES
+  </button>
+
+  @if (teams().team1.length > 0) {
+    <button class="btn-reshuffle" (click)="reShuffle()">
+      🔄 MÉLANGER (Garder l'équilibre)
+    </button>
+  }
+</div>
+    
+  </section>
+
+  <!-- Affichage des équipes générées -->
+  @if (teams().team1.length > 0) {
+    <div class="teams-container">
+      <div class="team-card team-a">
+        <h3>Équipe A (Score moy: {{ avgScore(teams().team1) }})</h3>
+        <ul>
+          @for (p of teams().team1; track p.id) {
+            <li><strong>{{ p.position }} :</strong> {{ p.nom }} ({{ p.score }})</li>
+          }
+        </ul>
+      </div>
+      <div class="team-card team-b">
+        <h3>Équipe B (Score moy: {{ avgScore(teams().team2) }})</h3>
+        <ul>
+          @for (p of teams().team2; track p.id) {
+            <li><strong>{{ p.position }} :</strong> {{ p.nom }} ({{ p.score }})</li>
+          }
+        </ul>
+      </div>
+    </div>
+  }
+
+</div>
+/*
+******************************************************************************
+* FICHIER: src\app\app.spec.ts
+* TAILLE: 703 octets
+* MODIFIÉ: 2026-02-06T07:54:06.339Z
+******************************************************************************
+*/
+
+import { TestBed } from '@angular/core/testing';
+import { App } from './app';
+
+describe('App', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [App],
+    }).compileComponents();
+  });
+
+  it('should create the app', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    expect(app).toBeTruthy();
+  });
+
+  it('should render title', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, foot-balancer');
+  });
+});
+
+/*
+******************************************************************************
+* FICHIER: src\app\app.ts
+* TAILLE: 3751 octets
+* MODIFIÉ: 2026-02-06T18:44:21.034Z
+******************************************************************************
+*/
+
+import { Component, signal, computed, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Player, Position } from './models/player.model';
+import { TeamService } from './services/team.service';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [CommonModule, FormsModule], // CommonModule est nécessaire pour [class] etc.
+  templateUrl: './app.html',
+  styleUrl: './app.css'
+})
+export class AppComponent {
+  private teamService = inject(TeamService);
+
+  // --- State géré par les Signals ---
+  allPlayers = signal<Player[]>([
+    { id: '1', nom: 'Omar', position: 'Défenseur', score: 7.3, estPresent: true },
+    { id: '2', nom: 'Ismael', position: 'Défenseur', score: 7.8, estPresent: true },
+    { id: '3', nom: 'Francis', position: 'Milieu', score: 8, estPresent: true },
+    { id: '4', nom: 'Assirem', position: 'Attaquant', score: 7.9, estPresent: true },
+    { id: '5', nom: 'Massi', position: 'Gardien', score: 8, estPresent: true },
+    { id: '6', nom: 'Maro', position: 'Milieu', score: 8.5, estPresent: true },
+    { id: '7', nom: 'Billal', position: 'Défenseur', score: 8, estPresent: true },
+    { id: '8', nom: 'Romain', position: 'Défenseur', score: 8.2, estPresent: true },
+    { id: '9', nom: 'Hassan', position: 'Milieu', score: 7, estPresent: true },
+    { id: '10', nom: 'Anis', position: 'Défenseur', score: 7.8, estPresent: true },
+    { id: '11', nom: 'Mike', position: 'Gardien', score: 7.5, estPresent: true },
+    { id: '12', nom: 'Seb', position: 'Attaquant', score: 7, estPresent: true },
+    { id: '13', nom: 'M10', position: 'Milieu', score: 7.8, estPresent: true },
+    { id: '14', nom: 'Airwin', position: 'Défenseur', score: 6, estPresent: true },
+    { id: '15', nom: 'Alex Ma', position: 'Milieu', score: 8.2, estPresent: true },
+    { id: '16', nom: 'Amin', position: 'Attaquant', score: 8.4, estPresent: true },
+    { id: '17', nom: 'Pepito', position: 'Attaquant', score: 8.6, estPresent: true },
+    { id: '18', nom: 'Chris', position: 'Milieu', score: 9, estPresent: true },
+  ]);
+
+  teams = signal<{ team1: Player[], team2: Player[] }>({ team1: [], team2: [] });
+
+  // --- Champs du formulaire ---
+  newPlayerName = '';
+  newPlayerPos: Position = 'Milieu';
+  newPlayerScore = 5;
+
+  // --- Signals dérivés (computed) ---
+  playersPresent = computed(() => this.allPlayers().filter(p => p.estPresent));
+
+  // --- Méthodes ---
+  addPlayer() {
+    if (!this.newPlayerName.trim()) return;
+    const newPlayer: Player = {
+      id: crypto.randomUUID(), // Méthode moderne pour générer un ID unique
+      nom: this.newPlayerName,
+      position: this.newPlayerPos,
+      score: this.newPlayerScore,
+      estPresent: true
+    };
+    this.allPlayers.update(currentPlayers => [...currentPlayers, newPlayer]);
+    
+    // Reset form
+    this.newPlayerName = '';
+    this.newPlayerScore = 5;
+  }
+
+  togglePresence(playerToToggle: Player) {
+    this.allPlayers.update(players => 
+      players.map(p => 
+        p.id === playerToToggle.id ? { ...p, estPresent: !p.estPresent } : p
+      )
+    );
+  }
+
+  // Génération initiale (stricte)
+  makeTeams() {
+    const result = this.teamService.generateTeams(this.playersPresent(), false);
+    this.teams.set(result);
+  }
+
+  // RE-GÉNÉRER (avec mélange)
+  reShuffle() {
+    const result = this.teamService.generateTeams(this.playersPresent(), true);
+    this.teams.set(result);
+  }
+
+  avgScore(team: Player[]): string {
+    if (team.length === 0) return '0';
+    const total = team.reduce((acc, p) => acc + p.score, 0);
+    return (total / team.length).toFixed(1);
+  }
+}
+/*
+******************************************************************************
+* FICHIER: src\app\models\player.model.ts
+* TAILLE: 231 octets
+* MODIFIÉ: 2026-02-06T08:03:03.106Z
+******************************************************************************
+*/
+
+export type Position = 'Gardien' | 'Défenseur' | 'Milieu' | 'Attaquant';
+
+export interface Player {
+  id: string;
+  nom: string;
+  surnom?: string;
+  position: Position;
+  score: number; // sur 10
+  estPresent: boolean;
+}
+/*
+******************************************************************************
+* FICHIER: src\app\services\team.service.ts
+* TAILLE: 1711 octets
+* MODIFIÉ: 2026-02-06T08:41:28.410Z
+******************************************************************************
+*/
+
+import { Injectable } from '@angular/core';
+import { Player, Position } from '../models/player.model';
+
+@Injectable({ providedIn: 'root' })
+export class TeamService {
+
+  generateTeams(presentPlayers: Player[], shuffle: boolean = false) {
+    let team1: Player[] = [];
+    let team2: Player[] = [];
+    const positionOrder: Position[] = ['Gardien', 'Défenseur', 'Milieu', 'Attaquant'];
+    let pickTeam1First = true;
+
+    positionOrder.forEach(pos => {
+      let playersInPos = presentPlayers.filter(p => p.position === pos);
+
+      // --- LOGIQUE DE VARIATION ---
+      if (shuffle) {
+        // On mélange aléatoirement les joueurs de cette position
+        playersInPos = playersInPos.sort(() => Math.random() - 0.5);
+        // Puis on les trie par score, mais les joueurs ayant la même note 
+        // ou une note proche seront dans un ordre différent à chaque fois.
+        playersInPos.sort((a, b) => b.score - a.score);
+      } else {
+        // Tirage standard : strictement par score
+        playersInPos.sort((a, b) => b.score - a.score);
+      }
+
+      playersInPos.forEach((player) => {
+        if (pickTeam1First) team1.push(player);
+        else team2.push(player);
+        pickTeam1First = !pickTeam1First;
+      });
+    });
+
+    return this.ensureNumericBalance(team1, team2);
+  }
+
+  private ensureNumericBalance(t1: Player[], t2: Player[]) {
+    while (Math.abs(t1.length - t2.length) > 1) {
+      if (t1.length > t2.length) {
+        const player = t1.pop();
+        if (player) t2.push(player);
+      } else {
+        const player = t2.pop();
+        if (player) t1.push(player);
+      }
+    }
+    return { team1: t1, team2: t2 };
+  }
+}
+/*
+******************************************************************************
+* FICHIER: src\index.html
+* TAILLE: 311 octets
+* MODIFIÉ: 2026-02-06T07:54:06.338Z
+******************************************************************************
+*/
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>FootBalancer</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>
+
+/*
+******************************************************************************
+* FICHIER: src\main.ts
+* TAILLE: 246 octets
+* MODIFIÉ: 2026-02-06T08:08:38.797Z
+******************************************************************************
+*/
+
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
+import { AppComponent } from './app/app';
+
+bootstrapApplication(AppComponent, appConfig)
+  .catch((err) => console.error(err));
+
+/*
+******************************************************************************
+* FICHIER: src\styles.css
+* TAILLE: 81 octets
+* MODIFIÉ: 2026-02-06T07:54:06.339Z
+******************************************************************************
+*/
+
+/* You can add global styles to this file, and also import other style files */
