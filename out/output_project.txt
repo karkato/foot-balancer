@@ -19,8 +19,8 @@ export const appConfig: ApplicationConfig = {
 /*
 ******************************************************************************
 * FICHIER: src\app\app.css
-* TAILLE: 2945 octets
-* MODIFIÉ: 2026-02-06T19:36:59.338Z
+* TAILLE: 4004 octets
+* MODIFIÉ: 2026-02-06T21:05:20.518Z
 ******************************************************************************
 */
 
@@ -155,17 +155,91 @@ button:hover { background-color: #303f9f; }
 .btn-reshuffle:hover {
   background-color: #e67e22;
 }
+
+.maintenance-screen {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f2f5;
+  font-family: sans-serif;
+}
+
+.maintenance-card {
+  background: white;
+  padding: 3rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  text-align: center;
+  max-width: 400px;
+}
+
+.maintenance-card .icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.maintenance-card h1 {
+  color: #1a237e;
+  margin: 0;
+}
+
+.maintenance-card .divider {
+  height: 4px;
+  width: 50px;
+  background: #3f51b5;
+  margin: 1.5rem auto;
+  border-radius: 2px;
+}
+
+.maintenance-card p {
+  color: #333;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.maintenance-card .subtitle {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.status-badge {
+  display: inline-block;
+  margin-top: 2rem;
+  padding: 0.5rem 1rem;
+  background: #fff3e0;
+  color: #ef6c00;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  border: 1px solid #ffe0b2;
+}
 /*
 ******************************************************************************
 * FICHIER: src\app\app.html
-* TAILLE: 2254 octets
-* MODIFIÉ: 2026-02-06T19:36:50.766Z
+* TAILLE: 2824 octets
+* MODIFIÉ: 2026-02-06T21:05:46.975Z
 ******************************************************************************
 */
 
-<div class="container">
+@if (isMaintenance()) {
+  <!-- PAGE DE MAINTENANCE -->
+  <div class="maintenance-screen">
+    <div class="maintenance-card">
+      <span class="icon">⚽</span>
+      <h1>Team Balancer</h1>
+      <div class="divider"></div>
+      <p>Le vestiaire est actuellement fermé pour travaux.</p>
+      <p class="subtitle">On prépare la nouvelle version des équipes. Revenez très bientôt !</p>
+      <div class="status-badge">Statut : Amélioration en cours</div>
+    </div>
+  </div>
+} @else {
+  <div class="container">
   <header>
-    <h1>⚽ Foot Match Balancer</h1>
+    <h1>⚽ Team Balancer</h1>
     <p>Créez des équipes équilibrées par poste et par niveau.</p>
   </header>
 
@@ -182,8 +256,12 @@ button:hover { background-color: #303f9f; }
         }
       </div>
 
-      <!-- Le score reste là pour la logique, mais il est "secret" dans la liste -->
-      <input type="number" [(ngModel)]="newPlayerScore" min="0" max="10" step="0.5" placeholder="Note">
+      <select [(ngModel)]="newPlayerScore">
+    <option [value]="9">🌟 Top Player</option>
+    <option [value]="7">✅ Confirmé</option>
+    <option [value]="5">🏃 Moyen</option>
+    <option [value]="3">🌱 Débutant / Loisir</option>
+  </select>
       <button (click)="addPlayer()">Ajouter</button>
     </div>
   </section>
@@ -232,6 +310,8 @@ button:hover { background-color: #303f9f; }
   }
 
 </div>
+}
+
 /*
 ******************************************************************************
 * FICHIER: src\app\app.spec.ts
@@ -267,8 +347,8 @@ describe('App', () => {
 /*
 ******************************************************************************
 * FICHIER: src\app\app.ts
-* TAILLE: 4152 octets
-* MODIFIÉ: 2026-02-06T19:34:29.773Z
+* TAILLE: 4433 octets
+* MODIFIÉ: 2026-02-07T08:19:07.245Z
 ******************************************************************************
 */
 
@@ -303,7 +383,7 @@ export class AppComponent {
     { id: '11', nom: 'Mike', positions: ['Gardien'], score: 7.5, estPresent: true },
     { id: '12', nom: 'Seb', positions: ['Attaquant'], score: 7, estPresent: true },
     { id: '13', nom: 'M10', positions: ['Milieu'], score: 7.8, estPresent: true },
-    { id: '14', nom: 'Airwin', positions: ['Défenseur'], score: 6, estPresent: true },
+    { id: '14', nom: 'Airwin', positions: ['Défenseur'], score: 6.5, estPresent: true },
     { id: '15', nom: 'Alex Ma', positions:[ 'Milieu'], score: 8.2, estPresent: true },
     { id: '16', nom: 'Amin', positions: ['Attaquant'], score: 8.4, estPresent: true },
     { id: '17', nom: 'Pepito', positions: ['Attaquant'], score: 8.6, estPresent: true },
@@ -311,6 +391,7 @@ export class AppComponent {
   ]);
 
   teams = signal<{ team1: Player[], team2: Player[] }>({ team1: [], team2: [] });
+  isMaintenance = signal(false);
 
   // --- Champs du formulaire ---
   newPlayerName = '';
@@ -325,15 +406,15 @@ export class AppComponent {
   // --- Méthodes ---
   addPlayer() {
     const roles = this.availablePositions.filter(p => this.selectedPositions[p]);
-    if (!this.newPlayerName.trim() || roles.length === 0) return;
+  if (!this.newPlayerName.trim() || roles.length === 0) return;
 
-    const newPlayer: Player = {
-      id: crypto.randomUUID(),
-      nom: this.newPlayerName,
-      positions: roles as Position[],
-      score: this.newPlayerScore,
-      estPresent: true
-    };
+  const newPlayer: Player = {
+    id: crypto.randomUUID(),
+    nom: this.newPlayerName,
+    positions: roles as Position[],
+    score: Number(this.newPlayerScore), // On stocke la valeur du profil
+    estPresent: true
+  };
     this.allPlayers.update(ps => [...ps, newPlayer]);
     this.newPlayerName = '';
     this.selectedPositions = {}; // Reset positions
@@ -370,6 +451,14 @@ export class AppComponent {
     return (total / team.length).toFixed(1);
   }
 }
+
+// Définition des profils
+export const NIVEAUX = [
+  { label: '🌟 Top', valeur: 9 },
+  { label: '✅ Confirmé', valeur: 7 },
+  { label: '🏃 Moyen', valeur: 5 },
+  { label: '🌱 Débutant', valeur: 3 }
+];
 /*
 ******************************************************************************
 * FICHIER: src\app\models\player.model.ts
@@ -391,8 +480,8 @@ export interface Player {
 /*
 ******************************************************************************
 * FICHIER: src\app\services\team.service.ts
-* TAILLE: 1624 octets
-* MODIFIÉ: 2026-02-06T18:55:15.262Z
+* TAILLE: 1754 octets
+* MODIFIÉ: 2026-02-06T20:24:11.660Z
 ******************************************************************************
 */
 
@@ -413,10 +502,15 @@ export class TeamService {
       let playersInPos = presentPlayers.filter(p => p.positions[0] === pos);
 
       if (useScore) {
-        // Mode "Équilibré" : Tri par score puis petit mélange interne
-        playersInPos.sort((a, b) => b.score - a.score);
+        // On ajoute un petit bonus/malus aléatoire de +/- 0.5 
+        // pour varier les compositions à chaque clic
+        playersInPos = playersInPos.map(p => ({
+          ...p,
+          tempScore: p.score + (Math.random() - 0.5)
+        }));
+
+        playersInPos.sort((a: any, b: any) => b.tempScore - a.tempScore);
       } else {
-        // Mode "Pur Aléatoire par poste" : Mélange total du groupe
         playersInPos = playersInPos.sort(() => Math.random() - 0.5);
       }
 

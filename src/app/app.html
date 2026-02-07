@@ -17,71 +17,58 @@
     <p>Créez des équipes équilibrées par poste et par niveau.</p>
   </header>
 
-  <section class="card">
-    <h2>Ajouter un joueur</h2>
-    <div class="form-group-multi">
-      <input [(ngModel)]="newPlayerName" placeholder="Nom">
-      
-      <div class="checkbox-group">
-        @for (pos of availablePositions; track pos) {
-          <label>
-            <input type="checkbox" [(ngModel)]="selectedPositions[pos]"> {{pos}}
-          </label>
-        }
-      </div>
-
-      <select [(ngModel)]="newPlayerScore">
-    <option [value]="9">🌟 Top Player</option>
-    <option [value]="7">✅ Confirmé</option>
-    <option [value]="5">🏃 Moyen</option>
-    <option [value]="3">🌱 Débutant / Loisir</option>
-  </select>
-      <button (click)="addPlayer()">Ajouter</button>
-    </div>
-  </section>
-
-  <section class="card">
-    <h2>Joueurs présents ({{ playersPresent().length }})</h2>
-    <div class="player-grid">
-      @for (p of allPlayers(); track p.id) {
-        <div class="player-tag" [class.active]="p.estPresent" (click)="togglePresence(p)">
-          <span class="player-name">{{ p.nom }}</span>
-          <!-- On affiche tous les postes du joueur -->
-          <span class="player-pos">{{ p.positions.join(' / ') }}</span>
-        </div>
+<section class="card">
+  <h2>Ajouter un joueur</h2>
+  <div class="form-group-multi">
+    <input [(ngModel)]="newPlayerName" placeholder="Nom du joueur">
+    
+    <div class="checkbox-group">
+      @for (pos of availablePositions; track pos) {
+        <label>
+          <input type="checkbox" [(ngModel)]="selectedPositions[pos]"> {{pos}}
+        </label>
       }
     </div>
-    
-    <div class="actions-gap">
-      <button class="btn-generate" (click)="makeTeams()">
-        GÉNÉRER ÉQUIPES (NIVEAU)
-      </button>
-      <button class="btn-reshuffle" (click)="shuffleByPositionOnly()">
-        🔄 MÉLANGER PAR POSTE (ALÉATOIRE)
-      </button>
-    </div>
-  </section>
 
-  @if (teams().team1.length > 0) {
-    <div class="teams-container">
-      <div class="team-card team-a">
-        <h3>Équipe A</h3> <!-- Score moyen supprimé -->
-        <ul>
-          @for (p of teams().team1; track p.id) {
-            <li><strong>{{ p.positions[0] }} :</strong> {{ p.nom }}</li>
-          }
-        </ul>
-      </div>
-      <div class="team-card team-b">
-        <h3>Équipe B</h3>
-        <ul>
-          @for (p of teams().team2; track p.id) {
-            <li><strong>{{ p.positions[0] }} :</strong> {{ p.nom }}</li>
-          }
-        </ul>
-      </div>
-    </div>
-  }
+    <button (click)="addPlayer()" [disabled]="!newPlayerName">Ajouter</button>
+  </div>
+</section>
 
+<section class="card">
+  <h2>Joueurs présents ({{ playersPresent().length }})</h2>
+  <div class="player-grid">
+    @for (p of allPlayers(); track p.id) {
+      <div class="player-tag" [class.active]="p.estPresent" (click)="togglePresence(p)">
+        <span class="player-name">{{ p.nom }}</span>
+        <span class="player-pos">{{ p.positions.join(' / ') }}</span>
+      </div>
+    }
+  </div>
+  
+  <button class="btn-generate" (click)="makeTeams()" [disabled]="playersPresent().length < 2">
+    GÉNÉRER LES ÉQUIPES
+  </button>
+</section>
+
+@if (teams().team1.length > 0) {
+  <div class="teams-container">
+    <div class="team-card team-a">
+      <h3>Équipe A ({{teams().team1.length}} joueurs)</h3>
+      <ul>
+        @for (p of teams().team1; track p.id) {
+          <li><strong>{{ p.positions[0] }} :</strong> {{ p.nom }}</li>
+        }
+      </ul>
+    </div>
+    <div class="team-card team-b">
+      <h3>Équipe B ({{teams().team2.length}} joueurs)</h3>
+      <ul>
+        @for (p of teams().team2; track p.id) {
+          <li><strong>{{ p.positions[0] }} :</strong> {{ p.nom }}</li>
+        }
+      </ul>
+    </div>
+  </div>
+}
 </div>
 }

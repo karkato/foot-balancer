@@ -4,29 +4,23 @@ import { Player, Position } from '../models/player.model';
 @Injectable({ providedIn: 'root' })
 export class TeamService {
 
-  generateTeams(presentPlayers: Player[], useScore: boolean = true) {
+  generateTeams(presentPlayers: Player[]) {
     let team1: Player[] = [];
     let team2: Player[] = [];
+    
+    // Ordre de priorité pour la répartition
     const positionOrder: Position[] = ['Gardien', 'Défenseur', 'Milieu', 'Attaquant'];
-    let pickTeam1First = Math.random() > 0.5; // Aléatoire sur qui commence
+    
+    // Pile ou face pour savoir quelle équipe reçoit le premier joueur
+    let pickTeam1First = Math.random() > 0.5;
 
     positionOrder.forEach(pos => {
-      // On récupère les joueurs dont la PREMIÈRE position correspond (poste préférentiel)
-      let playersInPos = presentPlayers.filter(p => p.positions[0] === pos);
+      // On récupère les joueurs de ce poste et on les MÉLANGE totalement
+      let playersInPos = presentPlayers
+        .filter(p => p.positions[0] === pos)
+        .sort(() => Math.random() - 0.5);
 
-      if (useScore) {
-        // On ajoute un petit bonus/malus aléatoire de +/- 0.5 
-        // pour varier les compositions à chaque clic
-        playersInPos = playersInPos.map(p => ({
-          ...p,
-          tempScore: p.score + (Math.random() - 0.5)
-        }));
-
-        playersInPos.sort((a: any, b: any) => b.tempScore - a.tempScore);
-      } else {
-        playersInPos = playersInPos.sort(() => Math.random() - 0.5);
-      }
-
+      // On distribue alternativement
       playersInPos.forEach((player) => {
         if (pickTeam1First) team1.push(player);
         else team2.push(player);
@@ -38,8 +32,8 @@ export class TeamService {
   }
 
   private ensureNumericBalance(t1: Player[], t2: Player[]) {
-    const all = [...t1, ...t2];
-    // Si la différence est trop grande, on rééquilibre strictement en 9v9
+    // Si on a un nombre de joueurs impair, on accepte une différence de 1
+    // Sinon on équilibre strictement (ex: 9v9)
     while (Math.abs(t1.length - t2.length) > 1) {
       if (t1.length > t2.length) t2.push(t1.pop()!);
       else t1.push(t2.pop()!);

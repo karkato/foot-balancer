@@ -5,6 +5,6 @@ export interface Player {
   nom: string;
   surnom?: string;
   positions: Position[];
-  score: number;
+  score?: number;
   estPresent: boolean;
 }
