@@ -17,7 +17,7 @@ export class AppComponent {
   private teamService = inject(TeamService);
 
   teams = signal<{ team1: Player[], team2: Player[] }>({ team1: [], team2: [] });
-  isMaintenance = signal(false);
+  isMaintenance = signal(true);
 
   newPlayerName = '';
   availablePositions: Position[] = ['Gardien', 'Défenseur', 'Milieu', 'Attaquant'];
