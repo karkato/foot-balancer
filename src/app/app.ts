@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Player, Position } from './models/player.model';
 import { TeamService } from './services/team.service';
+import {PlayerService} from './services/player.service';
 
 @Component({
   selector: 'app-root',
@@ -12,72 +13,35 @@ import { TeamService } from './services/team.service';
   styleUrl: './app.css'
 })
 export class AppComponent {
+  public playerService = inject(PlayerService);
   private teamService = inject(TeamService);
 
-  // --- State géré par les Signals ---
-  allPlayers = signal<Player[]>([
-    { id: '1', nom: 'Omar', positions: ['Défenseur'], estPresent: true },
-    { id: '2', nom: 'Ismael', positions: ['Défenseur'], estPresent: true },
-    { id: '3', nom: 'Francis', positions: ['Milieu'], estPresent: true },
-    { id: '4', nom: 'Assirem', positions: ['Attaquant'], estPresent: true },
-    { id: '5', nom: 'Massi', positions: ['Gardien'], estPresent: true },
-    { id: '6', nom: 'Maro', positions: ['Milieu'],  estPresent: true },
-    { id: '7', nom: 'Billal', positions: ['Défenseur'],  estPresent: true },
-    { id: '8', nom: 'Romain', positions: ['Défenseur'], estPresent: true },
-    { id: '9', nom: 'Hassan', positions: ['Milieu'],  estPresent: true },
-    { id: '10', nom: 'Anis', positions: ['Défenseur'],  estPresent: true },
-    { id: '11', nom: 'Mike', positions: ['Gardien'],  estPresent: true },
-    { id: '12', nom: 'Seb', positions: ['Attaquant'],  estPresent: true },
-    { id: '13', nom: 'M10', positions: ['Milieu'],  estPresent: true },
-    { id: '14', nom: 'Airwin', positions: ['Défenseur'], estPresent: true },
-    { id: '15', nom: 'Alex Ma', positions:[ 'Milieu'],  estPresent: true },
-    { id: '16', nom: 'Amin', positions: ['Attaquant'],  estPresent: true },
-    { id: '17', nom: 'Pepito', positions: ['Attaquant'],  estPresent: true },
-    { id: '18', nom: 'Chris', positions: ['Milieu'], estPresent: true },
-  ]);
-
   teams = signal<{ team1: Player[], team2: Player[] }>({ team1: [], team2: [] });
-  isMaintenance = signal(true);
+  isMaintenance = signal(false);
 
-  // --- Champs du formulaire ---
+  // Formulaire
   newPlayerName = '';
-  newPlayerPos: Position = 'Milieu';
-  newPlayerScore = 5;
-
-  // --- Signals dérivés (computed) ---
-  playersPresent = computed(() => this.allPlayers().filter(p => p.estPresent));
   availablePositions: Position[] = ['Gardien', 'Défenseur', 'Milieu', 'Attaquant'];
-  selectedPositions: { [key: string]: boolean } = {}; // Pour les checkboxes
+  selectedPositions: { [key: string]: boolean } = {};
 
-  // --- Méthodes ---
+  // Computed pour les joueurs présents (basé sur le service)
+  playersPresent = computed(() =>
+    this.playerService.activePlayers().filter(p => p.estPresent)
+  );
+
   addPlayer() {
     const roles = this.availablePositions.filter(p => this.selectedPositions[p]);
     if (!this.newPlayerName.trim() || roles.length === 0) return;
 
-    const newPlayer: Player = {
-      id: crypto.randomUUID(),
-      nom: this.newPlayerName,
-      positions: roles as Position[],
-      estPresent: true
-    };
-    this.allPlayers.update(ps => [...ps, newPlayer]);
+    this.playerService.addPlayerToActiveGroup(this.newPlayerName, roles as Position[]);
     this.newPlayerName = '';
     this.selectedPositions = {};
   }
 
-  togglePresence(playerToToggle: Player) {
-    this.allPlayers.update(players => 
-      players.map(p => 
-        p.id === playerToToggle.id ? { ...p, estPresent: !p.estPresent } : p
-      )
-    );
-  }
-
- makeTeams() {
+  makeTeams() {
     const result = this.teamService.generateTeams(this.playersPresent());
     this.teams.set(result);
   }
-
 }
 
 // Définition des profils

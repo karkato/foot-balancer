@@ -19,8 +19,8 @@ export const appConfig: ApplicationConfig = {
 /*
 ******************************************************************************
 * FICHIER: src\app\app.css
-* TAILLE: 4004 octets
-* MODIFIÉ: 2026-02-06T21:05:20.518Z
+* TAILLE: 5614 octets
+* MODIFIÉ: 2026-02-14T17:52:25.801Z
 ******************************************************************************
 */
 
@@ -216,16 +216,89 @@ button:hover { background-color: #303f9f; }
   font-weight: bold;
   border: 1px solid #ffe0b2;
 }
+
+/* --- Mise en page globale --- */
+.container.full-width {
+  max-width: 1200px; /* Plus large pour accommoder les colonnes */
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr; /* Le fameux 1/3 - 2/3 */
+  gap: 2rem;
+  align-items: start;
+}
+
+/* --- Sidebar (Gauche) --- */
+.sidebar .player-grid.vertical {
+  display: flex;
+  flex-direction: column; /* Liste verticale */
+  gap: 0.5rem;
+  max-height: 70vh;
+  overflow-y: auto; /* Scroll interne si trop de joueurs */
+  padding-right: 5px;
+}
+
+.sidebar .player-tag {
+  flex-direction: row; /* Nom et poste sur la même ligne */
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+}
+
+.sticky {
+  position: sticky;
+  top: 1rem; /* Reste visible au scroll */
+}
+
+/* --- Contenu (Droite) --- */
+.actions-container {
+  margin-bottom: 2rem;
+}
+
+.btn-generate.large {
+  padding: 1.5rem;
+  font-size: 1.4rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem;
+  background: #f9f9f9;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  color: #888;
+}
+
+/* --- Responsive : Mobile --- */
+@media (max-width: 850px) {
+  .main-layout {
+    grid-template-columns: 1fr; /* On repasse sur une seule colonne */
+  }
+
+  .sidebar .player-grid.vertical {
+    flex-direction: row; /* On remet en grille horizontale sur mobile */
+    flex-wrap: wrap;
+    max-height: none;
+  }
+}
+
+/* On garde tes autres styles (.card, .team-card, etc.) tels quels */
+
 /*
 ******************************************************************************
 * FICHIER: src\app\app.html
-* TAILLE: 2824 octets
-* MODIFIÉ: 2026-02-06T21:05:46.975Z
+* TAILLE: 3843 octets
+* MODIFIÉ: 2026-02-14T17:59:35.792Z
 ******************************************************************************
 */
 
 @if (isMaintenance()) {
-  <!-- PAGE DE MAINTENANCE -->
+  <!-- PAGE DE MAINTENANCE (Inchangée) -->
   <div class="maintenance-screen">
     <div class="maintenance-card">
       <span class="icon">⚽</span>
@@ -237,79 +310,97 @@ button:hover { background-color: #303f9f; }
     </div>
   </div>
 } @else {
-  <div class="container">
-  <header>
-    <h1>⚽ Team Balancer</h1>
-    <p>Créez des équipes équilibrées par poste et par niveau.</p>
-  </header>
+  <div class="container full-width">
+    <header>
+      <h1>⚽ Team Balancer</h1>
+      <p>Créez des équipes équilibrées par poste et par niveau.</p>
+    </header>
 
-  <section class="card">
-    <h2>Ajouter un joueur</h2>
-    <div class="form-group-multi">
-      <input [(ngModel)]="newPlayerName" placeholder="Nom">
-      
-      <div class="checkbox-group">
-        @for (pos of availablePositions; track pos) {
-          <label>
-            <input type="checkbox" [(ngModel)]="selectedPositions[pos]"> {{pos}}
-          </label>
-        }
-      </div>
+    <div class="main-layout">
+      <!-- COLONNE GAUCHE : LISTE DES JOUEURS (1/3) -->
+      <aside class="sidebar">
+        <section class="card sticky">
+          <!-- SÉLECTEUR DE GROUPE -->
+          <div class="group-switcher">
+            <label>Groupe actif :</label>
+            <select [ngModel]="playerService.activeGroupId()"
+                    (ngModelChange)="playerService.switchGroup($event)">
+              @for (g of playerService.groups(); track g.id) {
+                <option [value]="g.id">{{ g.name }}</option>
+              }
+            </select>
+          </div>
 
-      <select [(ngModel)]="newPlayerScore">
-    <option [value]="9">🌟 Top Player</option>
-    <option [value]="7">✅ Confirmé</option>
-    <option [value]="5">🏃 Moyen</option>
-    <option [value]="3">🌱 Débutant / Loisir</option>
-  </select>
-      <button (click)="addPlayer()">Ajouter</button>
-    </div>
-  </section>
+          <div class="divider"></div>
 
-  <section class="card">
-    <h2>Joueurs présents ({{ playersPresent().length }})</h2>
-    <div class="player-grid">
-      @for (p of allPlayers(); track p.id) {
-        <div class="player-tag" [class.active]="p.estPresent" (click)="togglePresence(p)">
-          <span class="player-name">{{ p.nom }}</span>
-          <!-- On affiche tous les postes du joueur -->
-          <span class="player-pos">{{ p.positions.join(' / ') }}</span>
+          <h2>Joueurs ({{ playersPresent().length }})</h2>
+          <div class="player-grid vertical">
+            @for (p of playerService.activePlayers(); track p.id) {
+              <div class="player-tag" [class.active]="p.estPresent"
+                   (click)="playerService.togglePresence(p.id)">
+                <span class="player-name">{{ p.nom }}</span>
+                <span class="player-pos">{{ p.positions.join('/') }}</span>
+              </div>
+            }
+          </div>
+        </section>
+      </aside>
+
+      <!-- COLONNE DROITE : ACTIONS ET RÉSULTATS (2/3) -->
+      <main class="content">
+        <!-- AJOUT DE JOUEUR -->
+        <section class="card">
+          <h2>Ajouter un joueur</h2>
+          <div class="form-group-multi">
+            <input [(ngModel)]="newPlayerName" placeholder="Nom du joueur">
+
+            <div class="checkbox-group">
+              @for (pos of availablePositions; track pos) {
+                <label>
+                  <input type="checkbox" [(ngModel)]="selectedPositions[pos]"> {{pos}}
+                </label>
+              }
+            </div>
+
+            <button (click)="addPlayer()" [disabled]="!newPlayerName">Ajouter</button>
+          </div>
+        </section>
+
+        <!-- GÉNÉRATION -->
+        <div class="actions-container">
+          <button class="btn-generate large" (click)="makeTeams()" [disabled]="playersPresent().length < 2">
+            GÉNÉRER LES ÉQUIPES
+          </button>
         </div>
-      }
-    </div>
-    
-    <div class="actions-gap">
-      <button class="btn-generate" (click)="makeTeams()">
-        GÉNÉRER ÉQUIPES (NIVEAU)
-      </button>
-      <button class="btn-reshuffle" (click)="shuffleByPositionOnly()">
-        🔄 MÉLANGER PAR POSTE (ALÉATOIRE)
-      </button>
-    </div>
-  </section>
 
-  @if (teams().team1.length > 0) {
-    <div class="teams-container">
-      <div class="team-card team-a">
-        <h3>Équipe A</h3> <!-- Score moyen supprimé -->
-        <ul>
-          @for (p of teams().team1; track p.id) {
-            <li><strong>{{ p.positions[0] }} :</strong> {{ p.nom }}</li>
-          }
-        </ul>
-      </div>
-      <div class="team-card team-b">
-        <h3>Équipe B</h3>
-        <ul>
-          @for (p of teams().team2; track p.id) {
-            <li><strong>{{ p.positions[0] }} :</strong> {{ p.nom }}</li>
-          }
-        </ul>
-      </div>
+        <!-- RÉSULTATS -->
+        @if (teams().team1.length > 0) {
+          <div class="teams-container">
+            <div class="team-card team-a">
+              <h3>Équipe A ({{teams().team1.length}})</h3>
+              <ul>
+                @for (p of teams().team1; track p.id) {
+                  <li><strong>{{ p.positions[0] }} :</strong> {{ p.nom }}</li>
+                }
+              </ul>
+            </div>
+            <div class="team-card team-b">
+              <h3>Équipe B ({{teams().team2.length}})</h3>
+              <ul>
+                @for (p of teams().team2; track p.id) {
+                  <li><strong>{{ p.positions[0] }} :</strong> {{ p.nom }}</li>
+                }
+              </ul>
+            </div>
+          </div>
+        } @else {
+          <div class="empty-state">
+            <p>Sélectionnez les joueurs à gauche et cliquez sur "Générer"</p>
+          </div>
+        }
+      </main>
     </div>
-  }
-
-</div>
+  </div>
 }
 
 /*
@@ -347,8 +438,8 @@ describe('App', () => {
 /*
 ******************************************************************************
 * FICHIER: src\app\app.ts
-* TAILLE: 4433 octets
-* MODIFIÉ: 2026-02-07T08:19:07.245Z
+* TAILLE: 1831 octets
+* MODIFIÉ: 2026-02-14T18:00:27.015Z
 ******************************************************************************
 */
 
@@ -357,6 +448,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Player, Position } from './models/player.model';
 import { TeamService } from './services/team.service';
+import {PlayerService} from './services/player.service';
 
 @Component({
   selector: 'app-root',
@@ -366,89 +458,34 @@ import { TeamService } from './services/team.service';
   styleUrl: './app.css'
 })
 export class AppComponent {
+  public playerService = inject(PlayerService);
   private teamService = inject(TeamService);
-
-  // --- State géré par les Signals ---
-  allPlayers = signal<Player[]>([
-    { id: '1', nom: 'Omar', positions: ['Défenseur'], score: 7.3, estPresent: true },
-    { id: '2', nom: 'Ismael', positions: ['Défenseur'], score: 7.8, estPresent: true },
-    { id: '3', nom: 'Francis', positions: ['Milieu'], score: 8, estPresent: true },
-    { id: '4', nom: 'Assirem', positions: ['Attaquant'], score: 7.9, estPresent: true },
-    { id: '5', nom: 'Massi', positions: ['Gardien'], score: 8, estPresent: true },
-    { id: '6', nom: 'Maro', positions: ['Milieu'], score: 8.5, estPresent: true },
-    { id: '7', nom: 'Billal', positions: ['Défenseur'], score: 8, estPresent: true },
-    { id: '8', nom: 'Romain', positions: ['Défenseur'], score: 8.2, estPresent: true },
-    { id: '9', nom: 'Hassan', positions: ['Milieu'], score: 7, estPresent: true },
-    { id: '10', nom: 'Anis', positions: ['Défenseur'], score: 7.8, estPresent: true },
-    { id: '11', nom: 'Mike', positions: ['Gardien'], score: 7.5, estPresent: true },
-    { id: '12', nom: 'Seb', positions: ['Attaquant'], score: 7, estPresent: true },
-    { id: '13', nom: 'M10', positions: ['Milieu'], score: 7.8, estPresent: true },
-    { id: '14', nom: 'Airwin', positions: ['Défenseur'], score: 6.5, estPresent: true },
-    { id: '15', nom: 'Alex Ma', positions:[ 'Milieu'], score: 8.2, estPresent: true },
-    { id: '16', nom: 'Amin', positions: ['Attaquant'], score: 8.4, estPresent: true },
-    { id: '17', nom: 'Pepito', positions: ['Attaquant'], score: 8.6, estPresent: true },
-    { id: '18', nom: 'Chris', positions: ['Milieu'], score: 9, estPresent: true },
-  ]);
 
   teams = signal<{ team1: Player[], team2: Player[] }>({ team1: [], team2: [] });
   isMaintenance = signal(false);
 
-  // --- Champs du formulaire ---
+  // Formulaire
   newPlayerName = '';
-  newPlayerPos: Position = 'Milieu';
-  newPlayerScore = 5;
-
-  // --- Signals dérivés (computed) ---
-  playersPresent = computed(() => this.allPlayers().filter(p => p.estPresent));
   availablePositions: Position[] = ['Gardien', 'Défenseur', 'Milieu', 'Attaquant'];
-  selectedPositions: { [key: string]: boolean } = {}; // Pour les checkboxes
+  selectedPositions: { [key: string]: boolean } = {};
 
-  // --- Méthodes ---
+  // Computed pour les joueurs présents (basé sur le service)
+  playersPresent = computed(() =>
+    this.playerService.activePlayers().filter(p => p.estPresent)
+  );
+
   addPlayer() {
     const roles = this.availablePositions.filter(p => this.selectedPositions[p]);
-  if (!this.newPlayerName.trim() || roles.length === 0) return;
+    if (!this.newPlayerName.trim() || roles.length === 0) return;
 
-  const newPlayer: Player = {
-    id: crypto.randomUUID(),
-    nom: this.newPlayerName,
-    positions: roles as Position[],
-    score: Number(this.newPlayerScore), // On stocke la valeur du profil
-    estPresent: true
-  };
-    this.allPlayers.update(ps => [...ps, newPlayer]);
+    this.playerService.addPlayerToActiveGroup(this.newPlayerName, roles as Position[]);
     this.newPlayerName = '';
-    this.selectedPositions = {}; // Reset positions
+    this.selectedPositions = {};
   }
 
-  togglePresence(playerToToggle: Player) {
-    this.allPlayers.update(players => 
-      players.map(p => 
-        p.id === playerToToggle.id ? { ...p, estPresent: !p.estPresent } : p
-      )
-    );
-  }
-
-  shuffleByPositionOnly() {
-    const result = this.teamService.generateTeams(this.playersPresent(), false);
-    this.teams.set(result);
-  }
-
-  // Génération initiale (stricte)
   makeTeams() {
-    const result = this.teamService.generateTeams(this.playersPresent(), false);
+    const result = this.teamService.generateTeams(this.playersPresent());
     this.teams.set(result);
-  }
-
-  // RE-GÉNÉRER (avec mélange)
-  reShuffle() {
-    const result = this.teamService.generateTeams(this.playersPresent(), true);
-    this.teams.set(result);
-  }
-
-  avgScore(team: Player[]): string {
-    if (team.length === 0) return '0';
-    const total = team.reduce((acc, p) => acc + p.score, 0);
-    return (total / team.length).toFixed(1);
   }
 }
 
@@ -459,29 +496,133 @@ export const NIVEAUX = [
   { label: '🏃 Moyen', valeur: 5 },
   { label: '🌱 Débutant', valeur: 3 }
 ];
+
+/*
+******************************************************************************
+* FICHIER: src\app\environment\environment.ts
+* TAILLE: 321 octets
+* MODIFIÉ: 2026-02-14T18:28:13.688Z
+******************************************************************************
+*/
+
+export const environment = {
+  supabaseUrl: 'https://bropqgbckkwpnyivfjpy.supabase.co',
+  supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJyb3BxZ2Jja2t3cG55aXZmanB5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwODE0OTUsImV4cCI6MjA4NjY1NzQ5NX0.flIRUUBL9VMdEwdzafQI7IsSRHbgvom_VAo0ZMvbLws'
+};
+
 /*
 ******************************************************************************
 * FICHIER: src\app\models\player.model.ts
-* TAILLE: 224 octets
-* MODIFIÉ: 2026-02-06T18:55:07.860Z
+* TAILLE: 273 octets
+* MODIFIÉ: 2026-02-14T17:55:04.155Z
 ******************************************************************************
 */
+
+export interface Group {
+  id: string;
+  name: string;
+  players: Player[];
+}
 
 export type Position = 'Gardien' | 'Défenseur' | 'Milieu' | 'Attaquant';
 
 export interface Player {
   id: string;
   nom: string;
-  surnom?: string;
   positions: Position[];
-  score: number;
   estPresent: boolean;
 }
+
+/*
+******************************************************************************
+* FICHIER: src\app\services\player.service.ts
+* TAILLE: 2190 octets
+* MODIFIÉ: 2026-02-14T18:21:48.309Z
+******************************************************************************
+*/
+
+import { Injectable, signal, computed } from '@angular/core';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { Player, Group, Position } from '../models/player.model';
+import {environment} from '../environment/environment';
+
+@Injectable({ providedIn: 'root' })
+export class PlayerService {
+  private supabase: SupabaseClient;
+
+  groups = signal<Group[]>([]);
+  activeGroupId = signal<string>('');
+
+  activePlayers = computed(() => {
+    const group = this.groups().find(g => g.id === this.activeGroupId());
+    return group ? group.players : [];
+  });
+
+  constructor() {
+    this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey);
+    this.loadData();
+  }
+
+  async loadData() {
+    // 1. Récupérer les groupes
+    const { data: groupsData } = await this.supabase.from('groups').select('*');
+
+    // 2. Récupérer tous les joueurs
+    const { data: playersData } = await this.supabase.from('players').select('*');
+
+    if (groupsData && playersData) {
+      const formattedGroups = groupsData.map(g => ({
+        id: g.id,
+        name: g.name,
+        players: playersData
+          .filter(p => p.group_id === g.id)
+          .map(p => ({
+            id: p.id,
+            nom: p.nom,
+            positions: p.positions,
+            estPresent: p.est_present
+          }))
+      }));
+
+      this.groups.set(formattedGroups);
+      if (formattedGroups.length > 0) this.activeGroupId.set(formattedGroups[0].id);
+    }
+  }
+
+  async addPlayerToActiveGroup(name: string, positions: Position[]) {
+    const { data, error } = await this.supabase.from('players').insert([
+      {
+        nom: name,
+        positions: positions,
+        group_id: this.activeGroupId(),
+        est_present: true
+      }
+    ]).select();
+
+    if (data) {
+      await this.loadData();
+    }
+  }
+
+  async togglePresence(playerId: string, currentStatus: boolean) {
+    await this.supabase
+      .from('players')
+      .update({ est_present: !currentStatus })
+      .eq('id', playerId);
+
+    await this.loadData();
+  }
+
+  switchGroup(id: string) {
+    this.activeGroupId.set(id);
+  }
+}
+
 /*
 ******************************************************************************
 * FICHIER: src\app\services\team.service.ts
-* TAILLE: 1754 octets
-* MODIFIÉ: 2026-02-06T20:24:11.660Z
+* TAILLE: 1465 octets
+* MODIFIÉ: 2026-02-07T19:50:03.015Z
 ******************************************************************************
 */
 
@@ -491,29 +632,23 @@ import { Player, Position } from '../models/player.model';
 @Injectable({ providedIn: 'root' })
 export class TeamService {
 
-  generateTeams(presentPlayers: Player[], useScore: boolean = true) {
+  generateTeams(presentPlayers: Player[]) {
     let team1: Player[] = [];
     let team2: Player[] = [];
+    
+    // Ordre de priorité pour la répartition
     const positionOrder: Position[] = ['Gardien', 'Défenseur', 'Milieu', 'Attaquant'];
-    let pickTeam1First = Math.random() > 0.5; // Aléatoire sur qui commence
+    
+    // Pile ou face pour savoir quelle équipe reçoit le premier joueur
+    let pickTeam1First = Math.random() > 0.5;
 
     positionOrder.forEach(pos => {
-      // On récupère les joueurs dont la PREMIÈRE position correspond (poste préférentiel)
-      let playersInPos = presentPlayers.filter(p => p.positions[0] === pos);
+      // On récupère les joueurs de ce poste et on les MÉLANGE totalement
+      let playersInPos = presentPlayers
+        .filter(p => p.positions[0] === pos)
+        .sort(() => Math.random() - 0.5);
 
-      if (useScore) {
-        // On ajoute un petit bonus/malus aléatoire de +/- 0.5 
-        // pour varier les compositions à chaque clic
-        playersInPos = playersInPos.map(p => ({
-          ...p,
-          tempScore: p.score + (Math.random() - 0.5)
-        }));
-
-        playersInPos.sort((a: any, b: any) => b.tempScore - a.tempScore);
-      } else {
-        playersInPos = playersInPos.sort(() => Math.random() - 0.5);
-      }
-
+      // On distribue alternativement
       playersInPos.forEach((player) => {
         if (pickTeam1First) team1.push(player);
         else team2.push(player);
@@ -525,8 +660,8 @@ export class TeamService {
   }
 
   private ensureNumericBalance(t1: Player[], t2: Player[]) {
-    const all = [...t1, ...t2];
-    // Si la différence est trop grande, on rééquilibre strictement en 9v9
+    // Si on a un nombre de joueurs impair, on accepte une différence de 1
+    // Sinon on équilibre strictement (ex: 9v9)
     while (Math.abs(t1.length - t2.length) > 1) {
       if (t1.length > t2.length) t2.push(t1.pop()!);
       else t1.push(t2.pop()!);

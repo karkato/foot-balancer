@@ -1,5 +1,5 @@
 @if (isMaintenance()) {
-  <!-- PAGE DE MAINTENANCE -->
+  <!-- PAGE DE MAINTENANCE (Inchangée) -->
   <div class="maintenance-screen">
     <div class="maintenance-card">
       <span class="icon">⚽</span>
@@ -11,64 +11,95 @@
     </div>
   </div>
 } @else {
-  <div class="container">
-  <header>
-    <h1>⚽ Team Balancer</h1>
-    <p>Créez des équipes équilibrées par poste et par niveau.</p>
-  </header>
+  <div class="container full-width">
+    <header>
+      <h1>⚽ Team Balancer</h1>
+      <p>Créez des équipes équilibrées par poste et par niveau.</p>
+    </header>
 
-<section class="card">
-  <h2>Ajouter un joueur</h2>
-  <div class="form-group-multi">
-    <input [(ngModel)]="newPlayerName" placeholder="Nom du joueur">
-    
-    <div class="checkbox-group">
-      @for (pos of availablePositions; track pos) {
-        <label>
-          <input type="checkbox" [(ngModel)]="selectedPositions[pos]"> {{pos}}
-        </label>
-      }
-    </div>
+    <div class="main-layout">
+      <!-- COLONNE GAUCHE : LISTE DES JOUEURS (1/3) -->
+      <aside class="sidebar">
+        <section class="card sticky">
+          <!-- SÉLECTEUR DE GROUPE -->
+          <div class="group-switcher">
+            <label>Groupe actif :</label>
+            <select [ngModel]="playerService.activeGroupId()"
+                    (ngModelChange)="playerService.switchGroup($event)">
+              @for (g of playerService.groups(); track g.id) {
+                <option [value]="g.id">{{ g.name }}</option>
+              }
+            </select>
+          </div>
 
-    <button (click)="addPlayer()" [disabled]="!newPlayerName">Ajouter</button>
-  </div>
-</section>
+          <div class="divider"></div>
 
-<section class="card">
-  <h2>Joueurs présents ({{ playersPresent().length }})</h2>
-  <div class="player-grid">
-    @for (p of allPlayers(); track p.id) {
-      <div class="player-tag" [class.active]="p.estPresent" (click)="togglePresence(p)">
-        <span class="player-name">{{ p.nom }}</span>
-        <span class="player-pos">{{ p.positions.join(' / ') }}</span>
-      </div>
-    }
-  </div>
-  
-  <button class="btn-generate" (click)="makeTeams()" [disabled]="playersPresent().length < 2">
-    GÉNÉRER LES ÉQUIPES
-  </button>
-</section>
+          <h2>Joueurs ({{ playersPresent().length }})</h2>
+          <div class="player-grid vertical">
+            @for (p of playerService.activePlayers(); track p.id) {
+              <div class="player-tag" [class.active]="p.estPresent"
+                   (click)="playerService.togglePresence(p.id, p.estPresent)">
+                <span class="player-name">{{ p.nom }}</span>
+                <span class="player-pos">{{ p.positions.join('/') }}</span>
+              </div>
+            }
+          </div>
+        </section>
+      </aside>
 
-@if (teams().team1.length > 0) {
-  <div class="teams-container">
-    <div class="team-card team-a">
-      <h3>Équipe A ({{teams().team1.length}} joueurs)</h3>
-      <ul>
-        @for (p of teams().team1; track p.id) {
-          <li><strong>{{ p.positions[0] }} :</strong> {{ p.nom }}</li>
+      <!-- COLONNE DROITE : ACTIONS ET RÉSULTATS (2/3) -->
+      <main class="content">
+        <!-- AJOUT DE JOUEUR -->
+        <section class="card">
+          <h2>Ajouter un joueur</h2>
+          <div class="form-group-multi">
+            <input [(ngModel)]="newPlayerName" placeholder="Nom du joueur">
+
+            <div class="checkbox-group">
+              @for (pos of availablePositions; track pos) {
+                <label>
+                  <input type="checkbox" [(ngModel)]="selectedPositions[pos]"> {{pos}}
+                </label>
+              }
+            </div>
+
+            <button (click)="addPlayer()" [disabled]="!newPlayerName">Ajouter</button>
+          </div>
+        </section>
+
+        <!-- GÉNÉRATION -->
+        <div class="actions-container">
+          <button class="btn-generate large" (click)="makeTeams()" [disabled]="playersPresent().length < 2">
+            GÉNÉRER LES ÉQUIPES
+          </button>
+        </div>
+
+        <!-- RÉSULTATS -->
+        @if (teams().team1.length > 0) {
+          <div class="teams-container">
+            <div class="team-card team-a">
+              <h3>Équipe A ({{teams().team1.length}})</h3>
+              <ul>
+                @for (p of teams().team1; track p.id) {
+                  <li><strong>{{ p.positions[0] }} :</strong> {{ p.nom }}</li>
+                }
+              </ul>
+            </div>
+            <div class="team-card team-b">
+              <h3>Équipe B ({{teams().team2.length}})</h3>
+              <ul>
+                @for (p of teams().team2; track p.id) {
+                  <li><strong>{{ p.positions[0] }} :</strong> {{ p.nom }}</li>
+                }
+              </ul>
+            </div>
+          </div>
+        } @else {
+          <div class="empty-state">
+            <p>Sélectionnez les joueurs à gauche et cliquez sur "Générer"</p>
+          </div>
         }
-      </ul>
-    </div>
-    <div class="team-card team-b">
-      <h3>Équipe B ({{teams().team2.length}} joueurs)</h3>
-      <ul>
-        @for (p of teams().team2; track p.id) {
-          <li><strong>{{ p.positions[0] }} :</strong> {{ p.nom }}</li>
-        }
-      </ul>
+      </main>
     </div>
   </div>
-}
-</div>
 }

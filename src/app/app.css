@@ -190,3 +190,75 @@ button:hover { background-color: #303f9f; }
   font-weight: bold;
   border: 1px solid #ffe0b2;
 }
+
+/* --- Mise en page globale --- */
+.container.full-width {
+  max-width: 1200px; /* Plus large pour accommoder les colonnes */
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr; /* Le fameux 1/3 - 2/3 */
+  gap: 2rem;
+  align-items: start;
+}
+
+/* --- Sidebar (Gauche) --- */
+.sidebar .player-grid.vertical {
+  display: flex;
+  flex-direction: column; /* Liste verticale */
+  gap: 0.5rem;
+  max-height: 70vh;
+  overflow-y: auto; /* Scroll interne si trop de joueurs */
+  padding-right: 5px;
+}
+
+.sidebar .player-tag {
+  flex-direction: row; /* Nom et poste sur la même ligne */
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+}
+
+.sticky {
+  position: sticky;
+  top: 1rem; /* Reste visible au scroll */
+}
+
+/* --- Contenu (Droite) --- */
+.actions-container {
+  margin-bottom: 2rem;
+}
+
+.btn-generate.large {
+  padding: 1.5rem;
+  font-size: 1.4rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem;
+  background: #f9f9f9;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  color: #888;
+}
+
+/* --- Responsive : Mobile --- */
+@media (max-width: 850px) {
+  .main-layout {
+    grid-template-columns: 1fr; /* On repasse sur une seule colonne */
+  }
+
+  .sidebar .player-grid.vertical {
+    flex-direction: row; /* On remet en grille horizontale sur mobile */
+    flex-wrap: wrap;
+    max-height: none;
+  }
+}
+
+/* On garde tes autres styles (.card, .team-card, etc.) tels quels */
