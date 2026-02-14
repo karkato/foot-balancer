@@ -61,13 +61,57 @@ export class PlayerService {
     }
   }
 
-  async togglePresence(playerId: string, currentStatus: boolean) {
+  async togglePresence(playerId: string) {
+    // Uniquement local (Signal)
+    this.groups.update(groups => groups.map(g => ({
+      ...g,
+      players: g.players.map(p => p.id === playerId ? { ...p, estPresent: !p.estPresent } : p)
+    })));
+  }
+
+  async resetPresences() {
+    this.groups.update(groups => groups.map(g => ({
+      ...g,
+      players: g.players.map(p => ({ ...p, estPresent: false }))
+    })));
+
+    const playerIds = this.activePlayers().map(p => p.id);
+
     await this.supabase
       .from('players')
-      .update({ est_present: !currentStatus })
-      .eq('id', playerId);
+      .update({ est_present: false })
+      .in('id', playerIds);
+  }
 
-    await this.loadData();
+  async syncWithSupabase() {
+    const players = this.activePlayers();
+    // On prépare les données pour un "upsert" (mise à jour groupée)
+    const toUpdate = players.map(p => ({
+      id: p.id,
+      nom: p.nom,
+      group_id: this.activeGroupId(),
+      positions: p.positions,
+      est_present: p.estPresent
+    }));
+
+    const { error } = await this.supabase
+      .from('players')
+      .upsert(toUpdate);
+
+    if (error) console.error("Erreur synchro:", error);
+  }
+
+  async deletePlayer(playerId: string) {
+    if (confirm('Supprimer définitivement ce joueur ?')) {
+      const { error } = await this.supabase
+        .from('players')
+        .delete()
+        .eq('id', playerId);
+
+      if (!error) {
+        await this.loadData();
+      }
+    }
   }
 
   switchGroup(id: string) {

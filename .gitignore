@@ -46,3 +46,4 @@ Thumbs.db
 # Supabase & Sensitive data
 src/environments/environment.ts
 src/environments/environment.prod.ts
+/out

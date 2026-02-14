@@ -1,5 +1,4 @@
 @if (isMaintenance()) {
-  <!-- PAGE DE MAINTENANCE (Inchangée) -->
   <div class="maintenance-screen">
     <div class="maintenance-card">
       <span class="icon">⚽</span>
@@ -18,10 +17,8 @@
     </header>
 
     <div class="main-layout">
-      <!-- COLONNE GAUCHE : LISTE DES JOUEURS (1/3) -->
       <aside class="sidebar">
         <section class="card sticky">
-          <!-- SÉLECTEUR DE GROUPE -->
           <div class="group-switcher">
             <label>Groupe actif :</label>
             <select [ngModel]="playerService.activeGroupId()"
@@ -30,26 +27,33 @@
                 <option [value]="g.id">{{ g.name }}</option>
               }
             </select>
+            <button class="btn-reset" (click)="playerService.resetPresences()">Réinitialiser</button>
           </div>
 
           <div class="divider"></div>
-
           <h2>Joueurs ({{ playersPresent().length }})</h2>
           <div class="player-grid vertical">
             @for (p of playerService.activePlayers(); track p.id) {
-              <div class="player-tag" [class.active]="p.estPresent"
-                   (click)="playerService.togglePresence(p.id, p.estPresent)">
-                <span class="player-name">{{ p.nom }}</span>
-                <span class="player-pos">{{ p.positions.join('/') }}</span>
+              <div class="player-tag" [class.active]="p.estPresent">
+                <!-- Zone infos : Nom + Poste en dessous -->
+                <div class="player-info" (click)="playerService.togglePresence(p.id)">
+                  <span class="player-name">{{ p.nom }}</span>
+                  <span class="player-pos-sub">{{ p.positions.join(' / ') }}</span>
+                </div>
+
+                <!-- Petite croix discrète -->
+                <button class="btn-delete-small"
+                        (click)="playerService.deletePlayer(p.id); $event.stopPropagation()"
+                        title="Supprimer">
+                  ×
+                </button>
               </div>
             }
           </div>
         </section>
       </aside>
 
-      <!-- COLONNE DROITE : ACTIONS ET RÉSULTATS (2/3) -->
       <main class="content">
-        <!-- AJOUT DE JOUEUR -->
         <section class="card">
           <h2>Ajouter un joueur</h2>
           <div class="form-group-multi">
@@ -58,7 +62,7 @@
             <div class="checkbox-group">
               @for (pos of availablePositions; track pos) {
                 <label>
-                  <input type="checkbox" [(ngModel)]="selectedPositions[pos]"> {{pos}}
+                  <input type="checkbox" [(ngModel)]="selectedPositions[pos]"> {{ pos }}
                 </label>
               }
             </div>
@@ -67,18 +71,16 @@
           </div>
         </section>
 
-        <!-- GÉNÉRATION -->
         <div class="actions-container">
           <button class="btn-generate large" (click)="makeTeams()" [disabled]="playersPresent().length < 2">
             GÉNÉRER LES ÉQUIPES
           </button>
         </div>
 
-        <!-- RÉSULTATS -->
         @if (teams().team1.length > 0) {
           <div class="teams-container">
             <div class="team-card team-a">
-              <h3>Équipe A ({{teams().team1.length}})</h3>
+              <h3>Équipe A ({{ teams().team1.length }})</h3>
               <ul>
                 @for (p of teams().team1; track p.id) {
                   <li><strong>{{ p.positions[0] }} :</strong> {{ p.nom }}</li>
@@ -86,7 +88,7 @@
               </ul>
             </div>
             <div class="team-card team-b">
-              <h3>Équipe B ({{teams().team2.length}})</h3>
+              <h3>Équipe B ({{ teams().team2.length }})</h3>
               <ul>
                 @for (p of teams().team2; track p.id) {
                   <li><strong>{{ p.positions[0] }} :</strong> {{ p.nom }}</li>

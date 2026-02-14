@@ -19,12 +19,10 @@ export class AppComponent {
   teams = signal<{ team1: Player[], team2: Player[] }>({ team1: [], team2: [] });
   isMaintenance = signal(false);
 
-  // Formulaire
   newPlayerName = '';
   availablePositions: Position[] = ['Gardien', 'Défenseur', 'Milieu', 'Attaquant'];
   selectedPositions: { [key: string]: boolean } = {};
 
-  // Computed pour les joueurs présents (basé sur le service)
   playersPresent = computed(() =>
     this.playerService.activePlayers().filter(p => p.estPresent)
   );
@@ -38,13 +36,15 @@ export class AppComponent {
     this.selectedPositions = {};
   }
 
-  makeTeams() {
+  async makeTeams() {
+    await this.playerService.syncWithSupabase();
+
     const result = this.teamService.generateTeams(this.playersPresent());
     this.teams.set(result);
   }
 }
 
-// Définition des profils
+
 export const NIVEAUX = [
   { label: '🌟 Top', valeur: 9 },
   { label: '✅ Confirmé', valeur: 7 },
