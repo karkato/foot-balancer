@@ -4,10 +4,16 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Désactiver la sélection de texte sur les boutons pour faire "App Native" */
+.player-tag, .btn-generate, .btn-reset {
+  user-select: none;
+  -webkit-tap-highlight-color: transparent; /* Enlever le carré bleu au clic sur mobile */
+}
+
 .container {
   max-width: 900px;
   margin: 2rem auto;
-  padding: 0 1rem;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 header {

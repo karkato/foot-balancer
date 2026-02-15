@@ -5,9 +5,20 @@
   <title>FootBalancer</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <!-- Couleur de la barre d'état sur iPhone -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="TeamBalancer">
+
+  <!-- Icône spécifique iPhone (Optionnel mais mieux) -->
+  <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
+
+  <!-- Empêcher le zoom automatique sur les inputs (très agaçant sur mobile) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
   <app-root></app-root>
+  <noscript>Please enable JavaScript to continue using this application.</noscript>
 </body>
 </html>
